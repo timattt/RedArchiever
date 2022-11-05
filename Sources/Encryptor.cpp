@@ -291,165 +291,6 @@ void sigma(unsigned int *x, unsigned int* y) {
 	y[3] = ((x[2] & W25_31) << 25) | ((x[3] & W0_24) >> 7);
 }
 
-void key_scheduling_192(unsigned int *k, unsigned int *wk, unsigned int* rk) {
-	unsigned int kl[4], kr[4], ll[4], lr[4], t[4];
-	unsigned int y[8], x[8];
-	int i;
-
-	/*step 2*/
-	kl[0] = k[0];
-	kl[1] = k[1];
-	kl[2] = k[2];
-	kl[3] = k[3];
-
-	kr[0] = k[4];
-	kr[1] = k[5];
-	kr[2] = ~k[0];
-	kr[3] = ~k[1];
-
-	/*step 3*/
-	x[0] = kl[0];
-	x[1] = kl[1];
-	x[2] = kl[2];
-	x[3] = kl[3];
-	x[4] = kr[0];
-	x[5] = kr[1];
-	x[6] = kr[2];
-	x[7] = kr[3];
-
-	gfn8(10, con_192, x, y);
-
-	ll[0] = y[0];
-	ll[1] = y[1];
-	ll[2] = y[2];
-	ll[3] = y[3];
-
-	lr[0] = y[4];
-	lr[1] = y[5];
-	lr[2] = y[6];
-	lr[3] = y[7];
-
-	printf("LL: \n");
-	for (i = 0; i < 4; i++) {
-		printf("%08x ", ll[i]);
-	}
-	printf("\n");
-
-	printf("LR: \n");
-	for (i = 0; i < 4; i++) {
-		printf("%08x ", lr[i]);
-	}
-	printf("\n");
-
-	/* step 4 */
-	wk[0] = kl[0] ^ kr[0];
-	wk[1] = kl[1] ^ kr[1];
-	wk[2] = kl[2] ^ kr[2];
-	wk[3] = kl[3] ^ kr[3];
-
-	/* step 5 */
-	for (i = 0; i <= 10; i++) {
-		if (i % 4 == 0 || i % 4 == 1) {
-		t[0] = ll[0] ^ con_192[40 + 4*i];
-		t[1] = ll[1] ^ con_192[40 + 4*i + 1];
-		t[2] = ll[2] ^ con_192[40 + 4*i + 2];
-		t[3] = ll[3] ^ con_192[40 + 4*i + 3];
-		sigma(ll, y);
-		ll[0] = y[0];
-		ll[1] = y[1];
-		ll[2] = y[2];
-		ll[3] = y[3];
-		if (i % 2 == 1) {
-			t[0] = t[0] ^ kr[0];
-			t[1] = t[1] ^ kr[1];
-			t[2] = t[2] ^ kr[2];
-			t[3] = t[3] ^ kr[3];
-		}
-		}
-		else {
-		t[0] = lr[0] ^ con_192[40 + 4*i];
-		t[1] = lr[1] ^ con_192[40 + 4*i + 1];
-		t[2] = lr[2] ^ con_192[40 + 4*i + 2];
-		t[3] = lr[3] ^ con_192[40 + 4*i + 3];
-		sigma(lr, y);
-		lr[0] = y[0];
-		lr[1] = y[1];
-		lr[2] = y[2];
-		lr[3] = y[3];
-		if (i % 2 == 1) {
-			t[0] = t[0] ^ kl[0];
-			t[1] = t[1] ^ kl[1];
-			t[2] = t[2] ^ kl[2];
-			t[3] = t[3] ^ kl[3];
-		}
-		}
-		rk[4*i] = t[0];
-		rk[4*i+1] = t[1];
-		rk[4*i+2] = t[2];
-		rk[4*i+3] = t[3];
-	}
-}
-
-
-void encryption_192(unsigned int *p, unsigned int *c, unsigned int *k) {
-
-	unsigned int t[4];
-	unsigned int wk[4];
-	unsigned int rk[44];
-	unsigned int y[4];
-
-	key_scheduling_192(k, wk, rk);
-
-	/* step 1 */
-	t[0] = p[0];
-	t[1] = p[1] ^ wk[0];
-	t[2] = p[2];
-	t[3] = p[3] ^ wk[1];
-
-
-
-	/* step 2 */
-	gfn4(22, rk, t, y);
-	t[0] = y[0];
-	t[1] = y[1];
-	t[2] = y[2];
-	t[3] = y[3];
-
-	/* step 3 */
-	c[0] = t[0];
-	c[1] = t[1] ^ wk[2];
-	c[2] = t[2];
-	c[3] = t[3] ^ wk[3];
-}
-
-void decryption_192(unsigned int *p, unsigned int *c, unsigned int * k) {
-
-	unsigned int t[4];
-	unsigned int wk[4];
-	unsigned int rk[44];
-	unsigned int y[4];
-
-	key_scheduling_192(k, wk, rk);
-
-	/* step 1 */
-	t[0] = c[0];
-	t[1] = c[1] ^ wk[2];
-	t[2] = c[2];
-	t[3] = c[3] ^ wk[3];
-
-	/* step 2 */
-	gfn_inv4(22, rk, t, y);
-	t[0] = y[0];
-	t[1] = y[1];
-	t[2] = y[2];
-	t[3] = y[3];
-
-	/* step 3 */
-	p[0] = t[0];
-	p[1] = t[1] ^ wk[0];
-	p[2] = t[2];
-	p[3] = t[3] ^ wk[1];
-}
 
 void key_scheduling_128(unsigned int *k, unsigned int *wk, unsigned int *rk) {
 
@@ -654,8 +495,9 @@ void clefia_cbc_128_enc(char* plain, char * cipher, int length, unsigned int *k)
 	}
 }
 
-void encrypt(char * src, int srcSizeBytes, char *& dest, unsigned int * key) {
+void encrypt(char * src, int srcSizeBytes, char *& dest, int & destSizeBytes, unsigned int * key) {
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
+	destSizeBytes = realSize;
 
 	// zero padding
 	for (int i = srcSizeBytes; i < realSize; i++) src[i] = 0;
@@ -663,8 +505,9 @@ void encrypt(char * src, int srcSizeBytes, char *& dest, unsigned int * key) {
 	clefia_cbc_128_enc(src, dest, realSize, key);
 }
 
-void decrypt(char * src, int srcSizeBytes, char *& dest, unsigned int * key) {
+void decrypt(char * src, int srcSizeBytes, char *& dest, int & destSizeBytes, unsigned int * key) {
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
-
+	destSizeBytes = realSize;
+	
 	clefia_cbc_128_dec(src, dest, realSize, key);
 }
