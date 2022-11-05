@@ -120,7 +120,6 @@ void encrypt(int argc, char * argv[]) {
 	encrypt(arch, arch_size, encr, encr_size, key);
 
 	writeToFile(outFile, (char*)encr, encr_size);
-	writeToFile(outFile, buf, buf_size);
 
 	free(arch);
 	free(encr);
