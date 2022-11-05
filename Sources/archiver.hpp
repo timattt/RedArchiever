@@ -108,7 +108,7 @@ ArchiverCPU::archive_impl (Iter begin,
         pos += code.len;
     }
 
-    coded.resize (pos / 8 + (pos % 8 != 0));
+    coded.resize (num_bits2num_bytes(pos));
     coded.shrink_to_fit ();
 
     return {coded, pos};
