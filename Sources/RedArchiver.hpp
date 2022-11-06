@@ -16,8 +16,8 @@ void decrypt(int argc, char * argv[]);
 void archive(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes);
 void unarchive(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes);
 
-void encrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, char * key);
-void decrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, char * key);
+void encrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, unsigned int * key);
+void decrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, unsigned int * key);
 
 //!Reports error and closes the program
 void error(const char * message);
