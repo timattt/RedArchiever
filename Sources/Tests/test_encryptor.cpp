@@ -2,9 +2,7 @@
 #include "../RedArchiver.hpp"
 #include "../encrypt.hpp"
 
-const char *origin = "../test/test_to_encrypt.txt";
-const char *destination_path = "../test/encrypt";
-const char *decrypted_path = "../test/decrypted_text.txt";
+const char *origin = "../Sources/Tests/text_to_encrypt.txt";
 
 int equal_ptr(void* a_, void* b_, int size) {
 	char *a = static_cast<char*>(a_);
