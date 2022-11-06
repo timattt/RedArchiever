@@ -1,14 +1,11 @@
-// includes
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <process.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdio>
 #include <cwchar>
 
-// constants
 #define MAX_FILES 100
 #define MAX_FILE_NAME_LENGTH 200
 
