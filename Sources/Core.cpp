@@ -89,20 +89,21 @@ void encrypt(int argc, char * argv[]) {
 	for (int i = 0; i < totalFiles; i++) {
 		fileSizes[i] = fileSize(argv[i]);
 
-		if (fileSizes[i] > (2 << 30)) {
-			error("Some file is too large!");
-		}
-
 		totalFilesSize += fileSizes[i];
 		shortFileNames[i] = makeShortName(argv[i], strlen(argv[i]));
 		fileNameSizes[i] = strlen(shortFileNames[i]);
 		totalNamesSize += fileNameSizes[i];
+
+		if (totalFilesSize > (2 << 30)) {
+			error("Some file is too large!");
+		}
 
 		printf("Found file: name=[%s], fileSize=[%d]\n", shortFileNames[i], fileSizes[i]);
 	}
 
 	// buffer to store all files
 	int buf_size = 4 + 4 * totalFiles + totalNamesSize + totalFiles /*to ensure endline symbol*/ + totalFilesSize;
+
 	char * buf = (char*) calloc(buf_size, 1);
 
 	// total files count
