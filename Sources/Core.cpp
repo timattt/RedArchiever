@@ -88,6 +88,11 @@ void encrypt(int argc, char * argv[]) {
 
 	for (int i = 0; i < totalFiles; i++) {
 		fileSizes[i] = fileSize(argv[i]);
+
+		if (fileSizes[i] > (2 << 30)) {
+			error("Some file is too large!");
+		}
+
 		totalFilesSize += fileSizes[i];
 		shortFileNames[i] = makeShortName(argv[i], strlen(argv[i]));
 		fileNameSizes[i] = strlen(shortFileNames[i]);
@@ -164,6 +169,11 @@ void decrypt(int argc, char * argv[]) {
 
 	// PROCESS
 	int input_size = fileSize(inputFileName);
+
+	if (input_size > (2 << 30)) {
+		error("Input file is too large!");
+	}
+
 	char * input_data = (char*) calloc(1, input_size);
 	readFromFileToBuf(inputFileName, input_size, input_data);
 
