@@ -130,11 +130,11 @@ void encrypt(int argc, char * argv[]) {
 	int encr_size = 0;
 
 	archive(init, buf_size, arch, arch_size);
-	//encrypt(arch, arch_size, encr, encr_size, key);
+	encrypt(arch, arch_size, encr, encr_size, key);
 
 	printf("Creating outfile: name=[%s]\n", outFile);
 
-	writeToFile(outFile, (char*)arch, arch_size);
+	writeToFile(outFile, (char*)encr, encr_size);
 
 	free(arch);
 	free(encr);
@@ -165,8 +165,8 @@ void decrypt(int argc, char * argv[]) {
 	void * unarch = NULL;
 	int unarch_size = 0;
 
-	//decrypt(input_data, input_size, decr, decr_size, key);
-	unarchive(input_data, input_size, unarch, unarch_size);
+	decrypt(input_data, input_size, decr, decr_size, key);
+	unarchive(decr, decr_size, unarch, unarch_size);
 
 	char * buf = (char*) unarch;
 	int buf_size = unarch_size;

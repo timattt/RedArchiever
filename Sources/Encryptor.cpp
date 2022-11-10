@@ -474,7 +474,7 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	destSizeBytes = realSize;
 
 	// key zero padding
-	char aligned_key[4] = {0x00, 0x00, 0x00, 0x00};
+	char aligned_key[5] = {0x00, 0x00, 0x00, 0x00, 0};
 	for (int i = 0; i < 4; i++){
 		if (i < int(strlen(key))){
 			aligned_key[i] = key[i];
@@ -499,7 +499,7 @@ void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	destSizeBytes = realSize;
 
 	// key zero padding
-	char aligned_key[4] = {0x00, 0x00, 0x00, 0x00};
+	char aligned_key[5] = {0x00, 0x00, 0x00, 0x00, 0};
 	for (int i = 0; i < 4; i++){
 		if (i < int(strlen(key))){
 			aligned_key[i] = key[i];
