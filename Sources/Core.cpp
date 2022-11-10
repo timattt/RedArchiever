@@ -28,7 +28,11 @@ void readFromFileToBuf(char * fileName, int fileSize, char * dest) {
 		error("Can not open some of files!");
 	}
 
-	fread(dest, 1, fileSize, file);
+	long long sz = fread(dest, 1, fileSize, file);
+
+	if (sz != fileSize) {
+		error("Something bad while reading file!");
+	}
 
 	fclose(file);
 }
@@ -43,7 +47,11 @@ void writeToFile(char * fileName, char * data, int size) {
 		error("Can not open some of files!");
 	}
 
-	fwrite(data, 1, size, file);
+	long long sz = fwrite(data, 1, size, file);
+
+	if (sz != size) {
+		error("Something bad while writing file!");
+	}
 
 	fclose(file);
 }
