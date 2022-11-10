@@ -19,8 +19,8 @@ TEST (ENCRYPT_TEST, Subtest_1) {
 	const char * key = "\x63\x61\x74\x55";
 
 	void *data = (void *)malloc(sz);
-	void *cipher_data = (void *)malloc(sz);
-	void *decrypted_data = (void *)malloc(sz);
+	void *cipher_data = NULL;
+	void *decrypted_data = NULL;
 
 	FILE *f;
 	f = fopen(origin, "r");

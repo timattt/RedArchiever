@@ -469,9 +469,11 @@ void clefia_cbc_128_enc(char* plain, char * cipher, int length, unsigned int *k)
 
 void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
 	char *src = static_cast<char*>(src_);
-	char *dest = static_cast<char*>(dest_);
+
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
+
+	dest_ = calloc(destSizeBytes, 1);
 
 	// key zero padding
 	char aligned_key[5] = {0x00, 0x00, 0x00, 0x00, 0};
@@ -487,16 +489,16 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	unsigned * ukey = (unsigned*) calloc(4*int(strlen(aligned_key) / 4) + 4, sizeof(unsigned));
 	strcpy((char*)ukey, aligned_key);
 
-	clefia_cbc_128_enc(src, dest, realSize, ukey);
+	clefia_cbc_128_enc(src, (char*)dest_, realSize, ukey);
 
 	free(ukey);
 }
 
 void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
 	char *src = static_cast<char*>(src_);
-	char *dest = static_cast<char*>(dest_);
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
+	dest_ = calloc(realSize, 1);
 
 	// key zero padding
 	char aligned_key[5] = {0x00, 0x00, 0x00, 0x00, 0};
@@ -509,7 +511,7 @@ void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	unsigned * ukey = (unsigned*) calloc(4*int(strlen(aligned_key) / 4) + 4, sizeof(unsigned));
 	strcpy((char*)ukey, aligned_key);
 
-	clefia_cbc_128_dec(src, dest, realSize, ukey);
+	clefia_cbc_128_dec(src, (char*)dest_, realSize, ukey);
 
 	free(ukey);
 }
