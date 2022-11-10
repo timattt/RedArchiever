@@ -467,7 +467,7 @@ void clefia_cbc_128_enc(char* plain, char * cipher, int length, unsigned int *k)
 	}
 }
 
-void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, unsigned int * key) {
+void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, char * key) {
 	char *src = static_cast<char*>(src_);
 	char *dest = static_cast<char*>(dest_);
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
@@ -476,14 +476,24 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	// zero padding
 	for (int i = srcSizeBytes; i < realSize; i++) src[i] = 0;
 
-	clefia_cbc_128_enc(src, dest, realSize, key);
+	unsigned * ukey = (unsigned*) calloc(4*int(strlen(key) / 4) + 4, sizeof(unsigned));
+	strcpy((char*)ukey, key);
+
+	clefia_cbc_128_enc(src, dest, realSize, ukey);
+
+	free(ukey);
 }
 
-void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, unsigned int * key) {
+void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, char * key) {
 	char *src = static_cast<char*>(src_);
 	char *dest = static_cast<char*>(dest_);
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
 	
-	clefia_cbc_128_dec(src, dest, realSize, key);
+	unsigned * ukey = (unsigned*) calloc(4*int(strlen(key) / 4) + 4, sizeof(unsigned));
+	strcpy((char*)ukey, key);
+
+	clefia_cbc_128_dec(src, dest, realSize, ukey);
+
+	free(ukey);
 }

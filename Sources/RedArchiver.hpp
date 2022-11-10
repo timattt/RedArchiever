@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdio>
 #include <cwchar>
+#include <dir.h>
 
 #define MAX_FILES 100
 #define MAX_FILE_NAME_LENGTH 200
@@ -16,8 +17,8 @@ void decrypt(int argc, char * argv[]);
 void archive(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes);
 void unarchive(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes);
 
-void encrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, unsigned int * key);
-void decrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, unsigned int * key);
+void encrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, char * key);
+void decrypt(void * src, int srcSizeBytes, void *& dest, int & destSizeBytes, char * key);
 
 //!Reports error and closes the program
 void error(const char * message);

@@ -35,6 +35,7 @@ void readFromFileToBuf(char * fileName, int fileSize, char * dest) {
 
 void writeToFile(char * fileName, char * data, int size) {
 	remove(fileName);
+
 	FILE * file = fopen(fileName, "wb");
 
 	if (file == NULL) {
@@ -45,6 +46,15 @@ void writeToFile(char * fileName, char * data, int size) {
 	fwrite(data, 1, size, file);
 
 	fclose(file);
+}
+
+char* makeShortName(char * name, int size) {
+	char * cur = name + size-1;
+	while (cur != name && *cur != '/') {
+		cur--;
+	}
+	cur++;
+	return cur;
 }
 
 void encrypt(int argc, char * argv[]) {
@@ -61,6 +71,7 @@ void encrypt(int argc, char * argv[]) {
 		error("Too many files!");
 	}
 
+	char * shortFileNames[MAX_FILES] = { 0 };
 	int fileSizes[MAX_FILES] = { 0 };
 	int fileNameSizes[MAX_FILES] = { 0 };
 	int totalFilesSize = 0;
@@ -69,10 +80,11 @@ void encrypt(int argc, char * argv[]) {
 	for (int i = 0; i < totalFiles; i++) {
 		fileSizes[i] = fileSize(argv[i]);
 		totalFilesSize += fileSizes[i];
-		fileNameSizes[i] = strlen(argv[i]);
+		shortFileNames[i] = makeShortName(argv[i], strlen(argv[i]));
+		fileNameSizes[i] = strlen(shortFileNames[i]);
 		totalNamesSize += fileNameSizes[i];
 
-		printf("Found file: name=[%s], size=[%d]\n", argv[i], fileSizes[i]);
+		printf("Found file: name=[%s], fileSize=[%d]\n", shortFileNames[i], fileSizes[i]);
 	}
 
 	// buffer to store all files
@@ -86,11 +98,11 @@ void encrypt(int argc, char * argv[]) {
 	// file names
 	char * cur = buf + sizeof(int);
 	for (int i = 0; i < totalFiles; i++) {
-		if (strlen(argv[i]) > MAX_FILE_NAME_LENGTH) {
+		if (strlen(shortFileNames[i]) > MAX_FILE_NAME_LENGTH) {
 			error("Too long file name!");
 		}
-		sprintf(cur, "%s", argv[i]);
-		cur += (strlen(argv[i]) + 1);
+		sprintf(cur, "%s", shortFileNames[i]);
+		cur += (strlen(shortFileNames[i]) + 1);
 	}
 
 	// files data
@@ -117,9 +129,11 @@ void encrypt(int argc, char * argv[]) {
 	int encr_size = 0;
 
 	archive(init, buf_size, arch, arch_size);
-	encrypt(arch, arch_size, encr, encr_size, key);
+	//encrypt(arch, arch_size, encr, encr_size, key);
 
-	writeToFile(outFile, (char*)encr, encr_size);
+	printf("Creating outfile: name=[%s]\n", outFile);
+
+	writeToFile(outFile, (char*)arch, arch_size);
 
 	free(arch);
 	free(encr);
@@ -150,13 +164,15 @@ void decrypt(int argc, char * argv[]) {
 	void * unarch = NULL;
 	int unarch_size = 0;
 
-	decrypt(input_data, input_size, decr, decr_size, key);
-	unarchive(decr, decr_size, unarch, unarch_size);
+	//decrypt(input_data, input_size, decr, decr_size, key);
+	unarchive(input_data, input_size, unarch, unarch_size);
 
 	char * buf = (char*) unarch;
 	int buf_size = unarch_size;
 
 	// UNPACK
+	mkdir(dest_dir);
+
 	int total_files = *(int*)(buf);
 
 	if (total_files > MAX_FILES) {
@@ -178,7 +194,7 @@ void decrypt(int argc, char * argv[]) {
 		}
 
 		int len = strlen(name);
-		printf("Found file: name=[%s], size=[%d]\n", fileNames[i], len);
+		printf("Found file: name=[%s], nameSize=[%d]\n", name, len);
 
 		cur += (len + 1);
 
@@ -196,6 +212,8 @@ void decrypt(int argc, char * argv[]) {
 		if (data + sz > buf + buf_size || sz < 0) {
 			error("File is damaged!");
 		}
+
+		printf("Writing file: name=[%s], fileSize=[%d]\n", fileNames[i], sz);
 
 		writeToFile(fileNames[i], data, sz);
 

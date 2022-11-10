@@ -15,10 +15,10 @@ int equal_ptr(void* a_, void* b_, int size) {
 }
 
 TEST (ENCRYPT_TEST, Subtest_1) {
-	unsigned int key[4] = {0x01234567,
+	unsigned int key[5] = {0x01234567,
 						   0x89abcd12,
 						   0x0ad562fe,
-						   0x67abc24a};
+						   0x67abc24a, 0};
 
 	void *data = (void *)malloc(sizeof(char) * byteSize);
 	void *cipher_data = (void *)malloc(sizeof(char) * byteSize);
@@ -32,9 +32,9 @@ TEST (ENCRYPT_TEST, Subtest_1) {
 
 	int realSize = nread + blockSize - (nread % blockSize);
     int destSize = 0;
-	encrypt(data, nread, cipher_data, destSize, key);
+	encrypt(data, nread, cipher_data, destSize, (char*)key);
 
-	decrypt(decrypted_data, nread, cipher_data, destSize, key);
+	decrypt(decrypted_data, nread, cipher_data, destSize, (char*)key);
 	
     ASSERT_EQ(equal_ptr(data, decrypted_data, realSize), 1);
 
