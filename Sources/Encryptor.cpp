@@ -409,7 +409,7 @@ void clefia_cbc_128_dec(char * plain, char * cipher, int length, unsigned int *k
 }
 
 void clefia_cbc_128_enc(char* plain, char * cipher, int length, unsigned int *k) {
-
+	
 	unsigned int p[4];
 	unsigned int c[4];
 	unsigned int wk[4];
@@ -467,31 +467,47 @@ void clefia_cbc_128_enc(char* plain, char * cipher, int length, unsigned int *k)
 	}
 }
 
-void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, char * key) {
+void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
 	char *src = static_cast<char*>(src_);
 	char *dest = static_cast<char*>(dest_);
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
 
+	// key zero padding
+	char aligned_key[4] = {0x00, 0x00, 0x00, 0x00};
+	for (int i = 0; i < 4; i++){
+		if (i < int(strlen(key))){
+			aligned_key[i] = key[i];
+		}
+	}
+
 	// zero padding
 	for (int i = srcSizeBytes; i < realSize; i++) src[i] = 0;
 
-	unsigned * ukey = (unsigned*) calloc(4*int(strlen(key) / 4) + 4, sizeof(unsigned));
-	strcpy((char*)ukey, key);
+	unsigned * ukey = (unsigned*) calloc(4*int(strlen(aligned_key) / 4) + 4, sizeof(unsigned));
+	strcpy((char*)ukey, aligned_key);
 
 	clefia_cbc_128_enc(src, dest, realSize, ukey);
 
 	free(ukey);
 }
 
-void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, char * key) {
+void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
 	char *src = static_cast<char*>(src_);
 	char *dest = static_cast<char*>(dest_);
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
-	
-	unsigned * ukey = (unsigned*) calloc(4*int(strlen(key) / 4) + 4, sizeof(unsigned));
-	strcpy((char*)ukey, key);
+
+	// key zero padding
+	char aligned_key[4] = {0x00, 0x00, 0x00, 0x00};
+	for (int i = 0; i < 4; i++){
+		if (i < int(strlen(key))){
+			aligned_key[i] = key[i];
+		}
+	}
+
+	unsigned * ukey = (unsigned*) calloc(4*int(strlen(aligned_key) / 4) + 4, sizeof(unsigned));
+	strcpy((char*)ukey, aligned_key);
 
 	clefia_cbc_128_dec(src, dest, realSize, ukey);
 
