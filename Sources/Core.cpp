@@ -94,8 +94,8 @@ void encrypt(int argc, char * argv[]) {
 		fileNameSizes[i] = strlen(shortFileNames[i]);
 		totalNamesSize += fileNameSizes[i];
 
-		if (totalFilesSize > (2 << 30)) {
-			error("Some file is too large!");
+		if (totalFilesSize > (2 << 29)) {
+			error("Some file is too large111!");
 		}
 
 		printf("Found file: name=[%s], fileSize=[%d]\n", shortFileNames[i], fileSizes[i]);
@@ -171,7 +171,7 @@ void decrypt(int argc, char * argv[]) {
 	// PROCESS
 	int input_size = fileSize(inputFileName);
 
-	if (input_size > (2 << 30)) {
+	if (input_size > (2 << 29)) {
 		error("Input file is too large!");
 	}
 

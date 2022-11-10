@@ -475,23 +475,17 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 
 	dest_ = calloc(destSizeBytes, 1);
 
-	// key zero padding
-	char aligned_key[5] = {0x00, 0x00, 0x00, 0x00, 0};
-	for (int i = 0; i < 4; i++){
-		if (i < int(strlen(key))){
-			aligned_key[i] = key[i];
-		}
+	unsigned ukey[4] = {0};
+	char * buf = (char*)ukey;
+	int len = strlen(key);
+	for (int i = 0; i < len; i++){
+		buf[i % 16] += key[i];
 	}
 
 	// zero padding
 	for (int i = srcSizeBytes; i < realSize; i++) src[i] = 0;
 
-	unsigned * ukey = (unsigned*) calloc(4*int(strlen(aligned_key) / 4) + 4, sizeof(unsigned));
-	strcpy((char*)ukey, aligned_key);
-
 	clefia_cbc_128_enc(src, (char*)dest_, realSize, ukey);
-
-	free(ukey);
 }
 
 void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
@@ -500,18 +494,12 @@ void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	destSizeBytes = realSize;
 	dest_ = calloc(realSize, 1);
 
-	// key zero padding
-	char aligned_key[5] = {0x00, 0x00, 0x00, 0x00, 0};
-	for (int i = 0; i < 4; i++){
-		if (i < int(strlen(key))){
-			aligned_key[i] = key[i];
-		}
+	unsigned ukey[4] = {0};
+	char * buf = (char*)ukey;
+	int len = strlen(key);
+	for (int i = 0; i < len; i++){
+		buf[i % 16] += key[i];
 	}
 
-	unsigned * ukey = (unsigned*) calloc(4*int(strlen(aligned_key) / 4) + 4, sizeof(unsigned));
-	strcpy((char*)ukey, aligned_key);
-
 	clefia_cbc_128_dec(src, (char*)dest_, realSize, ukey);
-
-	free(ukey);
 }
