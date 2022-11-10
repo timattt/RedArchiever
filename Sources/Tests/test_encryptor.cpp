@@ -32,7 +32,7 @@ TEST (ENCRYPT_TEST, Subtest_1) {
     int destSize = 0;
 	encrypt(data, nread, cipher_data, destSize, key);
 
-	decrypt(decrypted_data, nread, cipher_data, destSize, key);
+	decrypt(cipher_data, nread, decrypted_data, destSize, key);
 	
     ASSERT_EQ(equal_ptr(data, decrypted_data, realSize), 1);
 

@@ -363,7 +363,7 @@ void decryption_128(unsigned int *p, unsigned int *c, unsigned int *wk, unsigned
 	p[3] = t[3] ^ wk[1];
 }
 
-void clefia_cbc_128_dec(char * plain, char * cipher, int length, unsigned int *k) {
+void clefia_cbc_128_dec(char * cipher, char * plain, int length, unsigned int *k) {
 
 	unsigned int p[4];
 	unsigned int c[4];
