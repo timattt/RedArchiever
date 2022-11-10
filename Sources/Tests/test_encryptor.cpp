@@ -15,26 +15,24 @@ int equal_ptr(void* a_, void* b_, int size) {
 }
 
 TEST (ENCRYPT_TEST, Subtest_1) {
-	unsigned int key[5] = {0x01234567,
-						   0x89abcd12,
-						   0x0ad562fe,
-						   0x67abc24a, 0};
+	int sz = 10000;
+	const char * key = "\x63\x61\x74\x55";
 
-	void *data = (void *)malloc(sizeof(char) * byteSize);
-	void *cipher_data = (void *)malloc(sizeof(char) * byteSize);
-	void *decrypted_data = (void *)malloc(sizeof(char) * byteSize);
+	void *data = (void *)malloc(sz);
+	void *cipher_data = (void *)malloc(sz);
+	void *decrypted_data = (void *)malloc(sz);
 
 	FILE *f;
 	f = fopen(origin, "r");
     ASSERT_NE(f, nullptr);
-	int nread = fread(data, sizeof(char), byteSize, f);
+	int nread = fread(data, sizeof(char), sz, f);
 	fclose(f);
 
 	int realSize = nread + blockSize - (nread % blockSize);
     int destSize = 0;
-	encrypt(data, nread, cipher_data, destSize, (char*)key);
+	encrypt(data, nread, cipher_data, destSize, key);
 
-	decrypt(decrypted_data, nread, cipher_data, destSize, (char*)key);
+	decrypt(decrypted_data, nread, cipher_data, destSize, key);
 	
     ASSERT_EQ(equal_ptr(data, decrypted_data, realSize), 1);
 
