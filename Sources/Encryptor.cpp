@@ -475,6 +475,10 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 
 	dest_ = calloc(destSizeBytes, 1);
 
+	if (dest_ == NULL) {
+		error("Error while allocating memory for dest in encrypt");
+	}
+
 	unsigned ukey[4] = {0};
 	char * buf = (char*)ukey;
 	int len = strlen(key);
@@ -493,6 +497,10 @@ void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
 	dest_ = calloc(realSize, 1);
+
+	if (dest_ == NULL) {
+		error("Error while allocating memory for dest in decrypt");
+	}
 
 	unsigned ukey[4] = {0};
 	char * buf = (char*)ukey;
