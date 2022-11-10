@@ -53,7 +53,8 @@ char* makeShortName(char * name, int size) {
 	while (cur != name && *cur != '/') {
 		cur--;
 	}
-	cur++;
+	if (*cur == '/')
+		cur++;
 	return cur;
 }
 
