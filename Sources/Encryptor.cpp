@@ -467,7 +467,7 @@ void clefia_cbc_128_enc(char* plain, char * cipher, int length, unsigned int *k)
 	}
 }
 
-void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
+int encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
 	char *src = static_cast<char*>(src_);
 
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
@@ -475,9 +475,7 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 
 	dest_ = calloc(destSizeBytes, 1);
 
-	if (dest_ == NULL) {
-		error("Error while allocating memory for dest in encrypt");
-	}
+	ASSERT(dest_, MEMORY_ERROR, "Error while allocating memory for dest in encrypt");
 
 	unsigned ukey[4] = {0};
 	char * buf = (char*)ukey;
@@ -490,17 +488,17 @@ void encrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	for (int i = srcSizeBytes; i < realSize; i++) src[i] = 0;
 
 	clefia_cbc_128_enc(src, (char*)dest_, realSize, ukey);
+
+	return 0;
 }
 
-void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
+int decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, const char * key) {
 	char *src = static_cast<char*>(src_);
 	int realSize = srcSizeBytes + blockSize - (srcSizeBytes % blockSize);
 	destSizeBytes = realSize;
 	dest_ = calloc(realSize, 1);
 
-	if (dest_ == NULL) {
-		error("Error while allocating memory for dest in decrypt");
-	}
+	ASSERT(dest_, MEMORY_ERROR, "Error while allocating memory for dest in decrypt");
 
 	unsigned ukey[4] = {0};
 	char * buf = (char*)ukey;
@@ -510,4 +508,6 @@ void decrypt(void * src_, int srcSizeBytes, void *& dest_, int & destSizeBytes, 
 	}
 
 	clefia_cbc_128_dec(src, (char*)dest_, realSize, ukey);
+
+	return 0;
 }

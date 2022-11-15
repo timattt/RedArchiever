@@ -10,11 +10,17 @@ const char * dest_origin = "../Sources/Tests/Final/text_to_encrypt.txt";
 TEST (CORE_TEST, Subtest_1) {
 	char * argv_e[] {(char*)testFile, (char*)key, (char*)result};
 
-	encrypt(3, argv_e);
+	int res = 0;
+
+	res = encrypt(3, argv_e);
+
+	ASSERT_EQ(res, 0);
 
 	char * argv_d[] {(char*)result, (char*)key, (char*)dest_dir};
 
-	decrypt(3, argv_d);
+	res = decrypt(3, argv_d);
+
+	ASSERT_EQ(res, 0);
 
 	int sz = 10000;
 	char data1[sz] = {0};

@@ -8,7 +8,7 @@
 using haff_tree_size_t = uint64_t;
 using num_bits_t = uint64_t;
 
-void archive(void *_src, int srcSizeBytes, void *&_dest, int &destSizeBytes)
+int archive(void *_src, int srcSizeBytes, void *&_dest, int &destSizeBytes)
 {
 	auto *src = (uint8_t *)_src;
 	auto *dest = (uint8_t *)_dest;
@@ -38,9 +38,11 @@ void archive(void *_src, int srcSizeBytes, void *&_dest, int &destSizeBytes)
 	*((num_bits_t *)dest) = num_bits;
 	dest += sizeof(num_bits_t);
 	std::copy(archived_data.cbegin(), archived_data.cend(), dest);
+
+	return 0;
 }
 
-void unarchive(void *_src, int srcSizeBytes, void *&_dest, int &destSizeBytes)
+int unarchive(void *_src, int srcSizeBytes, void *&_dest, int &destSizeBytes)
 {
 	auto *src = (uint8_t *)_src;
 	auto *dest = (uint8_t *)_dest;
@@ -73,4 +75,6 @@ void unarchive(void *_src, int srcSizeBytes, void *&_dest, int &destSizeBytes)
 	std::copy_n(data_decoded.data(), destSizeBytes, (uint8_t *)dest);
 
 	_dest = dest;
+
+	return 0;
 }

@@ -1,14 +1,15 @@
 #include "RedArchiver.hpp"
 
+const char * errorMessage = NULL;
+const char * errorFile;
+int errorLine = 0;
+
 int fileSize(char * file_name) {
 	// opening the file in read mode
 	FILE *fp = fopen(file_name, "r");
 
 	// checking if the file exist or not
-	if (fp == NULL) {
-		error("File Not Found!");
-		return -1;
-	}
+	ASSERT(fp, FILES_ERROR, "File not found");
 
 	fseek(fp, 0L, SEEK_END);
 
@@ -21,39 +22,34 @@ int fileSize(char * file_name) {
 	return res;
 }
 
-void readFromFileToBuf(char * fileName, int fileSize, char * dest) {
+int readFromFileToBuf(char * fileName, int fileSize, char * dest) {
 	FILE * file = fopen(fileName, "rb");
 
-	if (file == NULL) {
-		error("Can not open some of files!");
-	}
+	ASSERT(file, FILES_ERROR, "Can not open some of files");
 
 	long long sz = fread(dest, 1, fileSize, file);
 
-	if (sz != fileSize) {
-		error("Something bad while reading file!");
-	}
+	ASSERT(sz == fileSize, FILES_ERROR, "Something bad while reading file");
 
 	fclose(file);
+
+	return 0;
 }
 
-void writeToFile(char * fileName, char * data, int size) {
+int writeToFile(char * fileName, char * data, int size) {
 	remove(fileName);
 
 	FILE * file = fopen(fileName, "wb");
 
-	if (file == NULL) {
-		printf("%s\n", fileName);
-		error("Can not open some of files!");
-	}
+	ASSERT(file, FILES_ERROR, "Can not open some of files");
 
 	long long sz = fwrite(data, 1, size, file);
 
-	if (sz != size) {
-		error("Something bad while writing file!");
-	}
+	ASSERT(sz == size, FILES_ERROR, "Something bad while writing file");
 
 	fclose(file);
+
+	return 0;
 }
 
 char* makeShortName(char * name, int size) {
@@ -66,19 +62,15 @@ char* makeShortName(char * name, int size) {
 	return cur;
 }
 
-void encrypt(int argc, char * argv[]) {
+int encrypt(int argc, char * argv[]) {
 	int totalFiles = argc - 2;
 
-	if (totalFiles <= 0) {
-		error("No files!");
-	}
+	ASSERT(totalFiles > 0, ARGS_ERROR, "No files");
 
 	char * key = argv[totalFiles];
 	char * outFile = argv[totalFiles + 1];
 
-	if (argc - 2 > MAX_FILES) {
-		error("Too many files!");
-	}
+	ASSERT(argc - 2 < MAX_FILES, ARGS_ERROR, "Too many files");
 
 	char * shortFileNames[MAX_FILES] = { 0 };
 	int fileSizes[MAX_FILES] = { 0 };
@@ -87,24 +79,25 @@ void encrypt(int argc, char * argv[]) {
 	int totalNamesSize = 0;
 
 	for (int i = 0; i < totalFiles; i++) {
-		fileSizes[i] = fileSize(argv[i]);
+		SAFE_CALL(fileSizes[i] = fileSize(argv[i]));
 
 		totalFilesSize += fileSizes[i];
 		shortFileNames[i] = makeShortName(argv[i], strlen(argv[i]));
 		fileNameSizes[i] = strlen(shortFileNames[i]);
 		totalNamesSize += fileNameSizes[i];
 
-		if (totalFilesSize > (2 << 29)) {
-			error("Some file is too large111!");
-		}
-
+		ASSERT(totalFilesSize < (2 << 29), FILES_ERROR, "Some file is too large");
+#ifdef DEBUG
 		printf("Found file: name=[%s], fileSize=[%d]\n", shortFileNames[i], fileSizes[i]);
+#endif
 	}
 
 	// buffer to store all files
 	int buf_size = 4 + 4 * totalFiles + totalNamesSize + totalFiles /*to ensure endline symbol*/ + totalFilesSize;
 
 	char * buf = (char*) calloc(buf_size, 1);
+
+	ASSERT(buf, MEMORY_ERROR, "Can not allocate result file buffer");
 
 	// total files count
 	int * struct_total = (int*) buf;
@@ -113,9 +106,7 @@ void encrypt(int argc, char * argv[]) {
 	// file names
 	char * cur = buf + sizeof(int);
 	for (int i = 0; i < totalFiles; i++) {
-		if (strlen(shortFileNames[i]) > MAX_FILE_NAME_LENGTH) {
-			error("Too long file name!");
-		}
+		ASSERT(strlen(shortFileNames[i]) < MAX_FILE_NAME_LENGTH, FILES_ERROR, "Too long file name");
 		sprintf(cur, "%s", shortFileNames[i]);
 		cur += (strlen(shortFileNames[i]) + 1);
 	}
@@ -126,7 +117,7 @@ void encrypt(int argc, char * argv[]) {
 
 	for (int i = 0; i < totalFiles; i++) {
 		// store data
-		readFromFileToBuf(argv[i], fileSizes[i], cur);
+		SAFE_CALL(readFromFileToBuf(argv[i], fileSizes[i], cur));
 		char * ptr = pointers_start + i * sizeof(int);
 		int * ptr_i = (int*)ptr;
 		// store data size
@@ -143,22 +134,24 @@ void encrypt(int argc, char * argv[]) {
 	void * encr = NULL;
 	int encr_size = 0;
 
-	archive(init, buf_size, arch, arch_size);
-	encrypt(arch, arch_size, encr, encr_size, key);
+	SAFE_CALL(archive(init, buf_size, arch, arch_size));
+	SAFE_CALL(encrypt(arch, arch_size, encr, encr_size, key));
 
+#ifdef DEBUG
 	printf("Creating outfile: name=[%s]\n", outFile);
+#endif
 
-	writeToFile(outFile, (char*)encr, encr_size);
+	SAFE_CALL(writeToFile(outFile, (char*)encr, encr_size));
 
 	free(arch);
 	free(encr);
 	free(buf);
+
+	return 0;
 }
 
-void decrypt(int argc, char * argv[]) {
-	if (argc != 2 && argc != 3) {
-		error("Ты как рубашку снял?");
-	}
+int decrypt(int argc, char * argv[]) {
+	ASSERT(argc == 2 || argc == 3, ARGS_ERROR, "Ты как рубашку снял?");
 
 	// ARGS
 	char * inputFileName = argv[0];
@@ -169,14 +162,13 @@ void decrypt(int argc, char * argv[]) {
 	}
 
 	// PROCESS
-	int input_size = fileSize(inputFileName);
+	int input_size = 0;
+	SAFE_CALL(input_size = fileSize(inputFileName));
 
-	if (input_size > (2 << 29)) {
-		error("Input file is too large!");
-	}
+	ASSERT(input_size < (2 << 29), FILES_ERROR, "Input file is too large!");
 
 	char * input_data = (char*) calloc(1, input_size);
-	readFromFileToBuf(inputFileName, input_size, input_data);
+	SAFE_CALL(readFromFileToBuf(inputFileName, input_size, input_data));
 
 	void * decr = NULL;
 	int decr_size = 0;
@@ -184,8 +176,8 @@ void decrypt(int argc, char * argv[]) {
 	void * unarch = NULL;
 	int unarch_size = 0;
 
-	decrypt(input_data, input_size, decr, decr_size, key);
-	unarchive(decr, decr_size, unarch, unarch_size);
+	SAFE_CALL(decrypt(input_data, input_size, decr, decr_size, key));
+	SAFE_CALL(unarchive(decr, decr_size, unarch, unarch_size));
 
 	char * buf = (char*) unarch;
 	int buf_size = unarch_size;
@@ -195,9 +187,7 @@ void decrypt(int argc, char * argv[]) {
 
 	int total_files = *(int*)(buf);
 
-	if (total_files > MAX_FILES) {
-		error("File is damaged!");
-	}
+	ASSERT(total_files < MAX_FILES, FILES_ERROR, "File is damaged");
 
 	char * cur = buf + sizeof(int);
 
@@ -214,13 +204,14 @@ void decrypt(int argc, char * argv[]) {
 		}
 
 		int len = strlen(name);
+
+#ifdef DEBUG
 		printf("Found file: name=[%s], nameSize=[%d]\n", name, len);
+#endif
 
 		cur += (len + 1);
 
-		if (cur > buf + buf_size) {
-			error("File is damaged!");
-		}
+		ASSERT(cur < buf + buf_size, FILES_ERROR, "File is damaged");
 	}
 
 	char * data = cur + total_files * sizeof(int);
@@ -229,13 +220,13 @@ void decrypt(int argc, char * argv[]) {
 		int sz = *(int*)(cur);
 		cur += sizeof(int);
 
-		if (data + sz > buf + buf_size || sz < 0) {
-			error("File is damaged!");
-		}
+		ASSERT(data + sz <= buf + buf_size && sz > 0, FILES_ERROR, "File is damaged");
 
+#ifdef DEBUG
 		printf("Writing file: name=[%s], fileSize=[%d]\n", fileNames[i], sz);
+#endif
 
-		writeToFile(fileNames[i], data, sz);
+		SAFE_CALL(writeToFile(fileNames[i], data, sz));
 
 		data += sz;
 	}
@@ -243,4 +234,6 @@ void decrypt(int argc, char * argv[]) {
 	free(input_data);
 	free(decr);
 	free(unarch);
+
+	return 0;
 }
